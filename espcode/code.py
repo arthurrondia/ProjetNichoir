@@ -8,7 +8,24 @@ import io
 import ulab.numpy as np
 import socketpool
 import wifi
+import alarm
+import digitalio
+from analogio import AnalogIn
 
+#setting up ins and outs
+pir = digitalio.DigitalInOut(board.SDA)
+led = digitalio.DigitalInOut(board.SCL)
+batADC = AnalogIn(board.BAT_ADC)
+
+#setting up the battery methods
+def get_batt(bat):
+    return (bat.value * 3) / 65535 #lets see which cell i use in the end
+
+#setting up alarms
+pir_alarm = alarm.pin.PinAlarm(pin=pir, value=True)
+normal_alarm = alarm.time.TimeAlarm(monotonic_time = time.monotonic() + 86400)
+
+#setting up the camera
 cam = espcamera.Camera(
     data_pins=board.D,
     pixel_clock_pin=board.PCLK,
@@ -21,8 +38,9 @@ cam = espcamera.Camera(
     frame_size=espcamera.FrameSize.VGA,
     grab_mode=espcamera.GrabMode.LATEST
     )
-
 cam.reconfigure()
+
+#throwing away bad frames and running the first frames
 print("getting ready")
 for x in range(5):
     bitmap = cam.take(0.5)
@@ -32,11 +50,11 @@ print("cheese")
 for x in range(5):
     bitmap=cam.take(1)
     print(type(bitmap))
-    if (type(bitmap) != 'NoneType'):
+    if (type(bitmap) != 'None'):
         break
 
 
-
+#Gemma generated RGB565 conversion function
 def RGB565toBMP_memory_16bit(bitmap):
     """
     Transforms an RGB565 array to a BMP byte buffer using a list of chunks.
@@ -91,6 +109,7 @@ def RGB565toBMP_memory_16bit(bitmap):
     # We use b"".join() because we are joining bytes, not strings!
     return header + b"".join(pixel_chunks)
 
+#Gemma generated RGB565 with 24 bit bitmap handling to try and solve that colour banding
 def RGB565toBMP_24bit(bitmap):
     """
     Transforms an RGB565 array into a standard 24-bit BMP.
@@ -186,5 +205,3 @@ print(f"Attempting to connect to {mqtt_client.broker}")
 mqtt_client.connect()
 print(f"Publishing to {mqtt_topic}")
 mqtt_client.publish(mqtt_topic, bytes(bmpbytes))
-
-#TODO enable deep sleep 
