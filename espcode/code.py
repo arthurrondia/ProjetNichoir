@@ -10,11 +10,13 @@ import socketpool
 import wifi
 import alarm
 import digitalio
+import time
 from analogio import AnalogIn
 
 #setting up ins and outs
-pir = digitalio.DigitalInOut(board.SDA)
+#pir = digitalio.DigitalInOut(board.SDA)
 led = digitalio.DigitalInOut(board.SCL)
+led.direction = digitalio.Direction.OUTPUT
 batADC = AnalogIn(board.BAT_ADC)
 
 #setting up the battery methods
@@ -22,7 +24,7 @@ def get_batt(bat):
     return (bat.value * 3) / 65535 #lets see which cell i use in the end
 
 #setting up alarms
-pir_alarm = alarm.pin.PinAlarm(pin=pir, value=True)
+pir_alarm = alarm.pin.PinAlarm(pin=board.SDA, value=True)
 normal_alarm = alarm.time.TimeAlarm(monotonic_time = time.monotonic() + 86400)
 
 #setting up the camera
@@ -40,18 +42,19 @@ cam = espcamera.Camera(
     )
 cam.reconfigure()
 
+#debug
 #throwing away bad frames and running the first frames
-print("getting ready")
-for x in range(5):
-    bitmap = cam.take(0.5)
-    print(type(bitmap))
-print("cheese")
-#bitmap=cam.take(1)
-for x in range(5):
-    bitmap=cam.take(1)
-    print(type(bitmap))
-    if (type(bitmap) != 'None'):
-        break
+# print("getting ready")
+# for x in range(5):
+#     bitmap = cam.take(0.5)
+#     print(type(bitmap))
+# print("cheese")
+# #bitmap=cam.take(1)
+# for x in range(5):
+#     bitmap=cam.take(1)
+#     print(type(bitmap))
+#     if (type(bitmap) != 'None'):
+#         break
 
 
 #Gemma generated RGB565 conversion function
@@ -174,14 +177,17 @@ def RGB565toBMP_24bit(bitmap):
     
     return buf
 
+#DEBUG FOR RUNNING WITHOUT SLEEP
 #bmpbytes = RGB565toBMP_memory_16bit(bitmap)
-bmpbytes = RGB565toBMP_24bit(bitmap)
+#bmpbytes = RGB565toBMP_24bit(bitmap)
 
 
 #mqtt
 pool = socketpool.SocketPool(wifi.radio)
 
-mqtt_topic = "test/topic"
+photo_topic = "gallery/images"
+sys_topic = "esp/system"
+batt_topic = "esp/battery"
 
 #callbacks
 def connect(mqtt_client, userdata, flags, rc):
@@ -199,9 +205,53 @@ mqtt_client = MQTT.MQTT(
     socket_pool=pool
 )
 
+
 mqtt_client.on_connect = connect
 mqtt_client.on_publish = publish
-print(f"Attempting to connect to {mqtt_client.broker}")
-mqtt_client.connect()
-print(f"Publishing to {mqtt_topic}")
-mqtt_client.publish(mqtt_topic, bytes(bmpbytes))
+
+#DEBUG:
+#print(f"Attempting to connect to {mqtt_client.broker}")
+#mqtt_client.connect()
+#print(f"Publishing to {mqtt_topic}")
+#mqtt_client.publish(mqtt_topic, bytes(bmpbytes))
+
+
+#actual program functions
+def onwake():
+    print(wifi.radio.connected)
+    while (wifi.radio.connected == False):
+        time.sleep(1)
+    mqtt_client.connect()
+    print("waiting for interruption...")
+    time.sleep(5)
+    mqtt_client.publish(sys_topic,"ESP working and connected")
+    mqtt_client.publish(batt_topic,get_batt(batADC))
+    normal_alarm = alarm.time.TimeAlarm(monotonic_time = time.monotonic() + 30) #redefining it here to get the freshest time
+    #alarm.exit_and_deep_sleep_until_alarms(normal_alarm)
+    alarm.exit_and_light_sleep_until_alarms(normal_alarm,pir_alarm)
+
+def onPIR():
+    for x in range(2):
+        bitmap = cam.take(0.5) #throwing away the first two
+    led.value = True #turning on the LED
+    for x in range(5): #attempting to take the picture
+        bitmap=cam.take(1)
+        if (type(bitmap) != 'None'):
+            break
+    led.value = False #turning off the LED
+    bmpbytes = RGB565toBMP_24bit(bitmap)
+    while (wifi.radio.connected == False):
+        time.sleep(1)
+    mqtt_client.connect()
+    mqtt_client.publish(photo_topic, bytes(bmpbytes))
+    mqtt_client.publish(batt_topic,get_batt(batADC))
+    alarm.exit_and_light_sleep_until_alarms(normal_alarm,pir_alarm) #not redefining the time because 24h might not have passed
+    #alarm.exit_and_deep_sleep_until_alarms(normal_alarm)
+#handling wake
+if isinstance(alarm.wake_alarm, alarm.pin.PinAlarm):
+    onPIR()
+elif isinstance(alarm.wake_alarm, alarm.time.TimeAlarm):
+    onwake()
+else:
+    print("Hello!! Reached the end of my program at init. Starting onwake now...")
+    onwake()
