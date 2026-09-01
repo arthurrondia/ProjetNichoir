@@ -11,6 +11,14 @@
 </head>
 <body>
     <h1>Nichoir Super Cool</h1>
+    <div class="battery-card">
+        <h3>Statut batterie:</h3>
+        {% if battery < 5 %}
+            <p>Dernier relevé de batterie: <strong>{{ battery.level }}%</strong> (à {{ battery.timestamp.strftime('%H:%M:%S') }})</p>
+        {% else %}
+            <p>Pas encore reçu de données de batterie.</p>
+        {% endif %}
+    </div>
     <div class="gallery">
         {% for img in images %}
             <img src="{{ url_for('static', filename='images/' + img.filename) }}">

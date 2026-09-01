@@ -48,6 +48,8 @@ def start_mqtt(): #fires at start
 def index():
     latest_battery = BatteryStatus.query.order_by(BatteryStatus.timestamp.desc()).first()
     images = ImageEntry.query.order_by(ImageEntry.timestamp.desc()).all() #looks for all images in the db
+    if (latest_battery == None):
+        return render_template('index.html',images=images, battery=500)
     return render_template('index.html', images=images, battery=latest_battery)
 
 if __name__ == '__main__': 
