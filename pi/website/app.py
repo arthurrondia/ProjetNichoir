@@ -2,7 +2,7 @@ import os
 import threading
 import paho.mqtt.client as mqtt
 from flask import Flask, render_template
-from database import db, ImageEntry #imports the data
+from database import db, ImageEntry, BatteryStatus #imports the data
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gallery.db'
@@ -48,8 +48,6 @@ def start_mqtt(): #fires at start
 def index():
     latest_battery = BatteryStatus.query.order_by(BatteryStatus.timestamp.desc()).first()
     images = ImageEntry.query.order_by(ImageEntry.timestamp.desc()).all() #looks for all images in the db
-    if (latest_battery == None):
-        return render_template('index.html',images=images, battery=500)
     return render_template('index.html', images=images, battery=latest_battery)
 
 if __name__ == '__main__': 
