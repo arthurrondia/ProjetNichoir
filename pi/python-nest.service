@@ -1,0 +1,11 @@
+[Unit]
+Description=Serveur web pour le nichoir connecté
+After=network.target
+[Service]
+Type=simple
+Restart=always
+RestartSec=15
+User=runner
+ExecStart=/usr/bin/env python3 /home/runner/ProjetNichoir/pi/website/app.py
+[Install]
+WantedBy=multi-user.target
