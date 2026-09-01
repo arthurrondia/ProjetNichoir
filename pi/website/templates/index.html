@@ -1,18 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Testing</title>
+    <title>Nichoir Coolos</title>
     <style>
+        .battery-card { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: inline-block; }
         .gallery { display: flex; flex-wrap: wrap; gap: 10px; }
         .gallery img { width: 480px; height: auto; border-radius: 8px; }
+        .button { background: #ff4444; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <h1>Testing</h1>
+    <h1>Nichoir Super Cool</h1>
     <div class="gallery">
         {% for img in images %}
             <img src="{{ url_for('static', filename='images/' + img.filename) }}">
         {% endfor %}
+    </div>
+    <div style="margin-bottom: 30px;">
+        <form action="/clear-all" method="POST" onsubmit="return confirm('Toutes les images et données seront effacées!');">
+            <button type="submit" class="button">Réinitialiser la DB</button>
+        </form>
     </div>
 </body>
 </html>

@@ -6,6 +6,7 @@ Type=simple
 Restart=always
 RestartSec=15
 User=runner
-ExecStart=/usr/bin/env python3 /home/runner/ProjetNichoir/pi/website/app.py
+WorkingDirectory=/home/runner/ProjetNichoir/pi/website
+ExecStart=python3 app.py
 [Install]
 WantedBy=multi-user.target
