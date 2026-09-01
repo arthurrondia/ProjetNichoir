@@ -24,10 +24,5 @@
             <img src="{{ url_for('static', filename='images/' + img.filename) }}">
         {% endfor %}
     </div>
-    <div style="margin-bottom: 30px;">
-        <form action="{{ url_for('clear-all') }}" method="POST" onsubmit="return confirm('Réinitialiser la DB?');">
-        <button type="submit" class="button">Effacer tout!</button>
-        </form>
-    </div>
 </body>
 </html>
