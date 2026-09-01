@@ -41,6 +41,7 @@ def start_mqtt(): #fires at start
     client.on_message = on_message #defines handler
     client.connect("192.168.64.1", 1883, 60)
     client.subscribe("gallery/images")
+    client.subscribe("esp/battery")
     client.loop_forever()
 
 #Web
