@@ -14,7 +14,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def on_message(client, userdata, msg): #channel message handler
     try:
         if msg.topic == "gallery/images":
-            filename = f"img_{msg.timestamp}_{msg.topic.replace('/', '_')}.jpg"
+            filename = f"img_{msg.timestamp}_{msg.topic.replace('/', '_')}.bmp"
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             with open(filepath, "wb") as f:
                 f.write(msg.payload)
