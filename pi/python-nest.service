@@ -1,6 +1,6 @@
 [Unit]
 Description=Serveur web pour le nichoir connecté
-After=network.target
+After=mosquitto.service
 [Service]
 Type=simple
 Restart=always

@@ -1,0 +1,8 @@
+[Unit]
+Description=Makes Mosquitto wait for complete network init
+
+[Timer]
+OnBootSec=90
+Unit=mosquitto.service
+[Install]
+WantedBy=timers.target

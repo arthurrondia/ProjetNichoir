@@ -31,7 +31,7 @@ def on_message(client, userdata, msg): #channel message handler
                 new_battery = BatteryStatus(level=battery_level)
                 db.session.add(new_battery)
                 db.session.commit()
-            print(f"Battery updated: {battery_level}%")
+            print(f"Battery updated: {battery_level}")
     except Exception as e: #error handling
         print(f"Error saving image: {e}")
 
@@ -76,3 +76,6 @@ def clear_all():
         db.session.commit()
             
     return redirect(url_for('index'))
+
+
+
