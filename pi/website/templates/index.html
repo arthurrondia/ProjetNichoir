@@ -24,5 +24,10 @@
             <img src="{{ url_for('static', filename='images/' + img.filename) }}">
         {% endfor %}
     </div>
+    <div style="margin-bottom: 30px;">
+        <form action="/clear-all" method="POST" onsubmit="return confirm('Cela effacera toutes les images!');">
+            <button type="submit" class="button">Effacer tout!</button>
+        </form>
+    </div>
 </body>
 </html>

@@ -25,7 +25,7 @@ boardled.value = True
 
 #setting up the battery methods
 def get_batt(bat):
-    return (bat.value) / 4096 #lets see which cell i use in the end, normally 3.7V
+    return (3.3*bat.value/65535) #lets see which cell i use in the end, normally 3.7V
 
 #setting up alarms
 pir_alarm = alarm.pin.PinAlarm(microcontroller.pin.GPIO4, value=True)

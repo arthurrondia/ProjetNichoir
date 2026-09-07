@@ -1,7 +1,7 @@
 import os
 import threading
 import paho.mqtt.client as mqtt
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from database import db, ImageEntry, BatteryStatus #imports the data
 
 app = Flask(__name__)
@@ -51,15 +51,6 @@ def index():
     images = ImageEntry.query.order_by(ImageEntry.timestamp.desc()).all() #looks for all images in the db
     return render_template('index.html', images=images, battery=latest_battery)
 
-if __name__ == '__main__': 
-    with app.app_context():
-        db.create_all() #creates the tables
-
-    mqtt_thread = threading.Thread(target=start_mqtt, daemon=True) #nonblocking mqtt listener
-    mqtt_thread.start()
-
-    app.run(host='192.168.64.1', port=8080) #starts serving
-
 @app.route('/clear-all', methods=['POST'])
 def clear_all():
     folder = app.config['UPLOAD_FOLDER'] 
@@ -76,6 +67,17 @@ def clear_all():
         db.session.commit()
             
     return redirect(url_for('index'))
+
+
+if __name__ == '__main__': 
+    with app.app_context():
+        db.create_all() #creates the tables
+
+    mqtt_thread = threading.Thread(target=start_mqtt, daemon=True) #nonblocking mqtt listener
+    mqtt_thread.start()
+
+    app.run(host='192.168.64.1', port=8080) #starts serving
+
 
 
 
